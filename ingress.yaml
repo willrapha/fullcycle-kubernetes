@@ -1,0 +1,25 @@
+# Similar aos services - evita de criarmos varios services 'loadbalance', instalar antes o ingress-nginx
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-host
+  annotations: # cada sistema que for utilizar esse ingress pode utilizar as annotation
+    kubernetes.io/ingress.class: "nginx" # ingress mais comum
+    cert-manager.io/cluster-issuer: "letsencrypt" # necessario para o certificado TLS, nome do ClusterIssuer(gera certificado) do arquivo cluster-inssuer.yaml
+    ingress.kubernetes.io/force-sll-redirect: "true" # plugin que força o redirect automatico para HTTPS
+spec:
+  rules:
+  - host: "localhost" # url
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: goserver-service # nome serviço
+            port: 
+              number: 80
+  tls:
+    - hosts:
+      - "localhost" # url
+      secretName: letsencrypt-tls # nome da propriedade privateKeySecretRef do arquivo cluster-inssuer.yaml

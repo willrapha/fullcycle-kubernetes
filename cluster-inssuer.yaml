@@ -1,0 +1,16 @@
+# Responsavel por renovar os certificados, configurar antes o DNS para o ip gerado pelo ingress-nginx
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+  namespace: cert-manager
+spec:
+  acme: # tipo de certificado, estamos usando o letsencrypt
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: will@mail.com # necessario o email do responsavel
+    privateKeySecretRef:
+      name: letsencrypt-tls # chave para gerar o certificado
+    solvers: # configuração para usar o https baseado no nosso certificado
+    - http01:
+        ingress:
+          class: nginx

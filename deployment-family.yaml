@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment #tipo
+metadata:   
+  name: goserver
+  labels:
+    app: goserver
+spec: #especificação do Deployment
+  selector: # seleciona somente determinadas labels
+    matchLabels:
+      app: goserver
+  replicas: 10 #quantidade de replicas
+  template: 
+    metadata:
+      labels: #etiqueta para filtros
+        app: goserver
+    spec: #especificação do Pod
+      containers:
+        - name: goserver
+          image: "willrapha/hello-go:v14"
+          envFrom: 
+            - configMapRef: 
+                name: goserver-env
+            - secretRef:
+                name: goserver-secret
+
+          volumeMounts:
+            - mountPath: "/go/myfamily"
+              name: config
+              readOnly: true # impede a modificação do arquivo
+
+      volumes:
+        - name: config
+          configMap:
+            name: configmap-family # arquivo configmap-family.yaml
+            items:
+            - key: members
+              path: "family.txt"

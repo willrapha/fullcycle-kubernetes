@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment #tipo
+metadata:   
+  name: goserver
+  labels:
+    app: goserver
+spec: #especificação do Deployment
+  selector: # seleciona somente determinadas labels
+    matchLabels:
+      app: goserver
+  replicas: 10 #quantidade de replicas
+  template: 
+    metadata:
+      labels: #etiqueta para filtros
+        app: goserver
+    spec: #especificação do Pod
+      containers:
+        - name: goserver
+          image: "willrapha/hello-go:v10"
+          livenessProbe: # healh check
+            httpGet:
+              path: /healthz
+              port: 9190
+            periodSeconds: 5 # quanto em quanto tempo ele faz essa verificação
+            failureThreshold: 3 # quantas vezes deve falhar antes de reiniciar
+            timeoutSeconds: 1 # timeout para completar a requisição
+            successThreshold: 1 # quantas vezes ele tem que testar pra mostrar que a aplicação esta tudo ok
+          envFrom: 
+            - configMapRef: 
+                name: goserver-env
+            - secretRef:
+                name: goserver-secret
+
+          volumeMounts:
+            - mountPath: "/go/myfamily"
+              name: config
+              readOnly: true # impede a modificação do arquivo
+
+      volumes:
+        - name: config
+          configMap:
+            name: configmap-family # arquivo configmap-family.yaml
+            items:
+            - key: members
+              path: "family.txt"

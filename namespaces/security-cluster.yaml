@@ -1,0 +1,37 @@
+# Usado para conceder permissões a um aplicativo ou pod para acessar recursos em um cluster do Kubernetes, por padrao tudo é criado na default
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: server
+
+--- # divide o arquivo
+
+# regras para a ServiceAccount que estamos criando acima
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole # para todos do cluster
+metadata:
+  name: server-read
+rules:
+- apiGroups: [""] # para quem nao tem api group
+  resources: ["pods","services"] # quais verbos essa ServiceAccount vai poder utilizar nesses recursos do kubernetes
+  verbs: ["get","watch","list"] # somente leitura
+
+- apiGroups: ["apps"]
+  resources: ["deployments"] # quais verbos essa ServiceAccount vai poder utilizar nesses recursos do kubernetes
+  verbs: ["get","watch","list"] # somente leitura
+
+---
+
+# necessario para fazer o binding entre a nossa Role e ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding 
+metadata:
+  name: server-read-bind
+subjects:
+- kind: ServiceAccount
+  name: server # service account que criamos acima
+  namespace: prod
+roleRef:
+  kind: ClusterRole
+  name: server-read # role que criamos acima
+  apiGroup: rbac.authorization.k8s.io # foi colocado esse grupo devido ao rodarmos o comando 'kubectl api-resources' o name 'roles' estar nesse grupo

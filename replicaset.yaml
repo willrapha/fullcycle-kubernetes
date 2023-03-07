@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: ReplicaSet #tipo
+metadata:   
+  name: goserver
+  labels:
+    app: goserver
+spec: #especificação do ReplicaSet
+  selector: # seleciona somente determinadas labels
+    matchLabels:
+      app: goserver
+  replicas: 2 #quantidade de replicas
+  template: 
+    metadata:
+      labels: #etiqueta para filtros
+        app: goserver
+    spec: #especificação do Pod
+      containers:
+      - name: goserver
+        image: "willrapha/hello-go:latest"

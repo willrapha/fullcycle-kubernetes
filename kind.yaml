@@ -1,0 +1,8 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4 # api que o kind irá utilizar para rodar os comandos
+
+nodes:
+- role: control-plane # role gerenciador do k8s
+- role: worker
+- role: worker
+- role: worker

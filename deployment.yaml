@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment #tipo
+metadata:   
+  name: goserver
+  labels:
+    app: goserver
+spec: #especificação do Deployment
+  selector: # seleciona somente determinadas labels
+    matchLabels:
+      app: goserver
+  replicas: 10 #quantidade de replicas
+  template: 
+    metadata:
+      labels: #etiqueta para filtros
+        app: goserver
+    spec: #especificação do Pod
+      containers:
+        - name: goserver
+          image: "willrapha/hello-go:v5"
+          envFrom: # utilizado para evitar a replica do codigo comentado abaixo
+            - configMapRef: 
+                name: goserver-env
+          #env:
+          # - name: NAME
+          #   valueFrom:
+          #     configMapKeyRef:
+          #       name: goserver-env
+          #       key: NAME
+
+          # - name: AGE
+          #   valueFrom:
+          #     configMapKeyRef:
+          #       name: goserver-env
+          #       key: AGE
+          # 

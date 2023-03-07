@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment #tipo
+metadata:   
+  name: goserver
+  labels:
+    app: goserver
+spec: #especificação do Deployment
+  selector: # seleciona somente determinadas labels
+    matchLabels:
+      app: goserver
+  replicas: 4 #quantidade de replicas
+  template: 
+    metadata:
+      labels: #etiqueta para filtros
+        app: goserver
+    spec: #especificação do Pod
+      containers:
+        - name: goserver
+          image: "willrapha/hello-go:v14"
+
+          resources: # limite de recursos do servidor (100m - 'm' de milicore antes da medida core)
+            requests: # -> MINIMO (RESERVANDO) caso nao tenha o recurso necessario na maquina o pod fica como pendente esperando a adição de recurso para ele ser criado
+              cpu: 100m
+              memory: 20Mi
+            limits: # limite de recurso que o pod pode utilizar
+              cpu: 500m
+              memory: 25Mi
+
+          startupProbe: # healh check para verificar se a aplicação ja subiu e esta pronta para uso apenas na inicialização é sempre executado antes do readinessProbe e livenessProbe
+            httpGet:
+              path: /healthz
+              port: 9190
+            periodSeconds: 1 # quanto em quanto tempo ele faz essa verificação
+            failureThreshold: 10 # quantas vezes ele irá tentar
+
+          readinessProbe: # healh check para verificar a todo momento se aplicação esta online caso a aplicação não esteja disponivel o container não é disponibilizado para uso "bloqueado o trafego"
+            httpGet:
+              path: /healthz
+              port: 9190
+            periodSeconds: 3 # quanto em quanto tempo ele faz essa verificação
+            failureThreshold: 1 # quantas vezes deve falhar para remover o trafego do container
+            #initialDelaySeconds: 1 # aguarda tantos segundos antes de começar a verificar
+
+          livenessProbe: # healh check para causo ocorra algum problema durante a execução da aplicação
+            httpGet:
+              path: /healthz
+              port: 9190
+            periodSeconds: 10 # quanto em quanto tempo ele faz essa verificação
+            failureThreshold: 3 # quantas vezes deve falhar antes de reiniciar
+            timeoutSeconds: 1 # timeout para completar a requisição
+            successThreshold: 1 # quantas vezes ele tem que testar pra mostrar que a aplicação esta tudo ok
+            #initialDelaySeconds: 10 # aguarda tantos segundos antes de começar a verificar
+          envFrom: 
+            - configMapRef: 
+                name: goserver-env
+            - secretRef:
+                name: goserver-secret
+
+          volumeMounts:
+            - mountPath: "/go/myfamily"
+              name: config
+              readOnly: true # impede a modificação do arquivo
+              
+            - mountPath: "/go/pvc"
+              name: goserver-volume
+
+      volumes:
+        - name: goserver-volume
+          persistentVolumeClaim:
+            claimName: goserver-pvc # nome do pvc criado no arquivo pvc.yaml
+
+        - name: config
+          configMap:
+            name: configmap-family # arquivo configmap-family.yaml
+            items:
+            - key: members
+              path: "family.txt"

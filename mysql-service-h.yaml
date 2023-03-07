@@ -1,0 +1,11 @@
+# service sem endereço de IP que possibilita batermos diretamente pelo nome
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-h # precisa estar com o nome igual ao da propriedade serviceName no arquivo statefulset.yml
+spec:
+  selector: # responsavel por filtrar todos os pods que vão estar incoporados nesse serviço
+    app: mysql
+  ports:
+    - port: 3306 # altera a porta que vai disponibilizada pelo service
+  clusterIP: None # não ira trabalhar com ip apenas com o dns
